@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Singapore Store</title>
+<style>
+:root{--ink:#111;--muted:#666;--line:#e8e8e8;--bg:#fafafa;--card:#fff}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;color:var(--ink);background:var(--bg)}
+header{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);z-index:10}
+.nav{max-width:1180px;margin:auto;height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+.logo{font-size:22px;font-weight:800;letter-spacing:-.5px}.links{display:flex;gap:24px}.links a{text-decoration:none;color:#222;font-size:14px}
+.actions{display:flex;gap:10px;align-items:center}.btn{border:1px solid #ddd;background:#fff;border-radius:10px;padding:10px 14px;cursor:pointer}.cart{font-weight:700}
+.hero{max-width:1180px;margin:28px auto;padding:55px 30px;border-radius:20px;background:#111;color:#fff}
+.hero h1{font-size:clamp(38px,7vw,72px);margin:0 0 12px;letter-spacing:-3px}.hero p{color:#d5d5d5;max-width:520px;line-height:1.6}.hero .btn{background:#fff;border-color:#fff}
+.wrap{max-width:1180px;margin:35px auto;padding:0 20px}.top{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:20px}
+.top h2{margin:0}.search{width:260px;padding:11px 13px;border:1px solid #ddd;border-radius:10px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}.card{background:var(--card);border:1px solid var(--line);border-radius:15px;overflow:hidden}.pic{height:230px;background:#eee;display:flex;align-items:center;justify-content:center;font-size:48px}.info{padding:15px}.name{font-weight:700;margin-bottom:7px}.price{font-weight:800}.muted{color:var(--muted);font-size:13px}.add{width:100%;margin-top:13px;background:#111;color:#fff;border:0;border-radius:9px;padding:11px;cursor:pointer}
+footer{margin-top:60px;border-top:1px solid var(--line);padding:30px 20px;text-align:center;color:#777}
+.modal{display:none;position:fixed;inset:0;background:#0008;z-index:20;align-items:flex-end;justify-content:center}.modal.open{display:flex}.panel{background:#fff;width:min(620px,100%);max-height:90vh;overflow:auto;border-radius:20px 20px 0 0;padding:22px}.panel h2{margin-top:0}.row{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #eee}.checkout{margin-top:18px;width:100%;padding:13px;border:0;border-radius:10px;background:#111;color:#fff;font-weight:700}
+@media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}.links{display:none}.hero{margin:15px;padding:35px 22px}.search{width:100%}.top{align-items:stretch;flex-direction:column}}
+@media(max-width:480px){.grid{grid-template-columns:1fr}.pic{height:250px}}
+</style>
+</head>
+<body>
+<header><nav class="nav">
+<div class="logo">Singapore Store</div>
+<div class="links"><a href="#shop">Shop</a><a href="#about">About</a><a href="#contact">Contact</a></div>
+<div class="actions"><button class="btn cart" onclick="openCart()">Cart (<span id="count">0</span>)</button></div>
+</nav></header>
+
+<main>
+<section class="hero"><h1>Simple shopping.<br>Made easy.</h1><p>Welcome to Singapore Store. Browse our collection, add your favourites to your cart, and checkout in a few clicks.</p><a href="#shop"><button class="btn">Shop now</button></a></section>
+
+<section class="wrap" id="shop">
+<div class="top"><h2>Featured products</h2><input class="search" id="search" placeholder="Search products..." oninput="render()"></div>
+<div class="grid" id="products"></div>
+</section>
+
+<section class="wrap" id="about"><h2>About Singapore Store</h2><p class="muted">A clean starter storefront ready for your real products, prices, images, payment provider and delivery details.</p></section>
+<section class="wrap" id="contact"><h2>Contact</h2><p class="muted">Add your phone number, WhatsApp, email and social links here before launch.</p></section>
+</main>
+
+<footer>© 2026 Singapore Store · All rights reserved.</footer>
+
+<div class="modal" id="modal" onclick="if(event.target===this)closeCart()"><div class="panel">
+<div style="display:flex;justify-content:space-between"><h2>Your cart</h2><button class="btn" onclick="closeCart()">Close</button></div>
+<div id="cart"></div><div id="total" style="font-weight:800;margin-top:15px"></div>
+<button class="checkout" onclick="checkout()">Proceed to checkout</button>
+</div></div>
+
+<script>
+const products=[
+{id:1,name:"Classic T-Shirt",price:15000,emoji:"👕",desc:"Comfortable everyday wear"},
+{id:2,name:"Premium Sneakers",price:45000,emoji:"👟",desc:"Clean everyday sneakers"},
+{id:3,name:"Everyday Backpack",price:28000,emoji:"🎒",desc:"Simple and practical"},
+{id:4,name:"Smart Watch",price:65000,emoji:"⌚",desc:"Modern everyday accessory"},
+{id:5,name:"Classic Cap",price:12000,emoji:"🧢",desc:"Simple casual style"},
+{id:6,name:"Wireless Earbuds",price:35000,emoji:"🎧",desc:"Compact wireless audio"},
+{id:7,name:"Travel Bottle",price:10000,emoji:"🥤",desc:"Reusable daily bottle"},
+{id:8,name:"Minimal Wallet",price:18000,emoji:"👛",desc:"Slim everyday wallet"}
+];
+let cart=[];
+const money=n=>"₦"+n.toLocaleString();
+function render(){
+ const q=document.getElementById("search").value.toLowerCase();
+ document.getElementById("products").innerHTML=products.filter(p=>(p.name+" "+p.desc).toLowerCase().includes(q)).map(p=>`
+ <article class="card"><div class="pic">${p.emoji}</div><div class="info"><div class="name">${p.name}</div><div class="muted">${p.desc}</div><div class="price">${money(p.price)}</div><button class="add" onclick="add(${p.id})">Add to cart</button></div></article>`).join("");
+}
+function add(id){let p=cart.find(x=>x.id===id);p?p.qty++:cart.push({id,qty:1});update();openCart()}
+function update(){document.getElementById("count").textContent=cart.reduce((a,x)=>a+x.qty,0)}
+function openCart(){document.getElementById("modal").classList.add("open");let el=document.getElementById("cart");if(!cart.length){el.innerHTML='<p class="muted">Your cart is empty.</p>';document.getElementById("total").textContent="";return}
+let total=0;el.innerHTML=cart.map(x=>{let p=products.find(y=>y.id===x.id);total+=p.price*x.qty;return `<div class="row"><span>${p.name} × ${x.qty}</span><b>${money(p.price*x.qty)}</b></div>`}).join("");document.getElementById("total").textContent="Total: "+money(total)}
+function closeCart(){document.getElementById("modal").classList.remove("open")}
+function checkout(){if(!cart.length)return alert("Your cart is empty.");alert("Checkout is ready to connect to your payment provider. Replace this demo action with Paystack, Flutterwave, Stripe, or your preferred provider.");}
+render();update();
+</script>
+</body>
+</html>
